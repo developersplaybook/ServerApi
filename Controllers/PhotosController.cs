@@ -26,17 +26,6 @@ namespace ServerAPI.Controllers
             return Ok(photos);
         }
 
-        [HttpGet("caption/{id}")]
-        [SwaggerOperation(Summary = "Get album caption by photo id", Description = "Get album caption by photo id")]
-        public ActionResult GetAlbumCaption(int id) // id = photoId
-        {
-            var caption = _photos.GetAlbumCaptionByPhotoId(id);
-
-            if (!string.IsNullOrEmpty(caption))
-                return Ok(new { caption });
-
-            return NotFound(new { message = "Album caption found." });
-        }
 
         [HttpPost("add")]
         [Authorize]
