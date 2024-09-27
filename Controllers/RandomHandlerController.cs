@@ -3,23 +3,23 @@ using Microsoft.AspNetCore.Mvc;
 using ServerAPI.Interfaces;
 using ServerAPI.Models;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace ServerAPI.Controllers
 {
     public class RandomHandlerController : Controller
     {
         private const string SessionRandomPhotoID = "RandomPhotoID";
-        private const string SessionPhotoID = "PhotoID";
-        private readonly IRandomHandler _randomHandler;
 
-        public RandomHandlerController(IRandomHandler randomHandler)
+        private readonly IRandomHandlerService _randomHandler;
+
+        public RandomHandlerController(IRandomHandlerService randomHandler)
         {
             _randomHandler = randomHandler;
         }
 
-
         // GET: /Images/
-        public IActionResult Index(string arg1, string arg2)
+        public async Task<IActionResult> Index(string arg1, string arg2)
         {
             PhotoSize size = arg2.Replace("Size=", "") switch
             {
@@ -29,40 +29,50 @@ namespace ServerAPI.Controllers
                 _ => PhotoSize.Original,
             };
 
-            string photoId = arg1.Replace("PhotoID=", "");
-
-            if (photoId == "0")
-            {
-                photoId = _randomHandler.GetRandomPhotoId(_randomHandler.GetRandomAlbumId()).ToString();
-                HttpContext.Session.SetString(SessionRandomPhotoID, photoId);
-            }
-
-            HttpContext.Session.SetString(SessionPhotoID, photoId);
-
             using var stream = new MemoryStream();
+
             if (arg1.StartsWith("PhotoID"))
             {
-                var parsedPhotoId = int.Parse(photoId);
-                _randomHandler.GetPhoto(parsedPhotoId, size).CopyTo(stream);
+                await ProcessPhotoIdRequest(arg1, size, stream);
             }
             else if (arg1.StartsWith("AlbumID"))
             {
-                var albumId = int.Parse(arg1.Replace("AlbumID=", ""));
-                _randomHandler.GetFirstPhoto(albumId, size).CopyTo(stream);
+                await ProcessAlbumIdRequest(arg1, size, stream);
             }
 
             return File(stream.ToArray(), "image/png");
         }
 
-        public IActionResult Download(string arg1, string arg2)
+        private async Task ProcessPhotoIdRequest(string arg1, PhotoSize size, MemoryStream stream)
         {
-            var photoId = HttpContext.Session.GetString(SessionPhotoID);
-            if (string.IsNullOrEmpty(photoId))
+            int photoId;
+
+            if (arg1 == "PhotoID=0")
             {
-                photoId = _randomHandler.GetRandomPhotoId(_randomHandler.GetRandomAlbumId()).ToString();
-                HttpContext.Session.SetString(SessionPhotoID, photoId);
+                var randomAlbumId = await _randomHandler.GetRandomAlbumIdAsync().ConfigureAwait(false);
+                photoId = await _randomHandler.GetRandomPhotoIdAsync(randomAlbumId);
+                HttpContext.Session.SetString(SessionRandomPhotoID, photoId.ToString());
+            }
+            else
+            {
+                photoId = int.Parse(arg1.Replace("PhotoID=", ""));
             }
 
+            var result = await _randomHandler.GetPhotoAsync(photoId, size);
+            result.CopyTo(stream);
+        }
+
+        private async Task ProcessAlbumIdRequest(string arg1, PhotoSize size, MemoryStream stream)
+        {
+            var albumId = int.Parse(arg1.Replace("AlbumID=", ""));
+            var result = await _randomHandler.GetFirstPhotoAsync(albumId, size);
+            result.CopyTo(stream);
+        }
+
+
+        public IActionResult Download(string arg1, string arg2)
+        {
+            var photoId = HttpContext.Session.GetString(SessionRandomPhotoID);
             ViewData["PhotoID"] = photoId;
             ViewData["Size"] = "L";
 

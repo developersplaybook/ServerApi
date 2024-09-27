@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServerAPI.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace ServerAPI.Controllers
 {
@@ -12,52 +13,59 @@ namespace ServerAPI.Controllers
     [Route("api/[controller]")]
     public class PhotosController : ControllerBase
     {
-        private readonly IPhotos _photos;
-        public PhotosController(IPhotos photos)
+        private readonly IPhotosService _photosService;
+        public PhotosController(IPhotosService photos)
         {
-            _photos = photos;
+            _photosService = photos;
         }
 
         [HttpGet("album/{id}")]
         [SwaggerOperation(Summary = "Get all photos in album", Description = "Get all photos in album")]
-        public ActionResult GetPhotos(int id) // id = albumId
+        public async Task<ActionResult> GetPhotos(int id) // id = albumId
         {
-            var photos = _photos.GetPhotosByAlbumId(id).Select(o => new { o.PhotoID, o.AlbumID, o.Caption });
-            return Ok(photos);
+            var allPhotosSlim = await _photosService.GetPhotoSlimByAlbumIdAsync(id);
+            return Ok(allPhotosSlim);
         }
 
 
         [HttpPost("add")]
         [Authorize]
         [SwaggerOperation(Summary = "Add photo", Description = "Add photo")]
-        public ActionResult Add([FromForm] FormData formData)
+        public async Task<IActionResult> Add([FromForm] FormData formData)
         {
-            using (var ms = new MemoryStream())
+            try
             {
-                formData.Image.CopyTo(ms);
-                var fileBytes = ms.ToArray();
-                _photos.AddPhoto(formData.AlbumId, formData.Caption, fileBytes);
+                using (var ms = new MemoryStream())
+                {
+                    formData.Image.CopyTo(ms);
+                    var fileBytes = ms.ToArray();
+                    await _photosService.AddPhotoAsync(formData.AlbumId, formData.Caption, fileBytes);
+                }
+
+                return Ok(new { message = "Photo added successfully." });
             }
-
-            return Ok(new { message = "Photo added successfully." });
-
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while processing your request.", details = ex.InnerException?.Message ?? ex.Message });
+            }
         }
+
 
         [HttpPut("update/{id}")]
         [Authorize]
         [SwaggerOperation(Summary = "Update photo", Description = "Update photo")]
-        public ActionResult Update(int id, [FromBody] string caption)
+        public async Task<ActionResult> Update(int id, [FromBody] string caption)
         {
-            _photos.UpdatePhoto(caption, id);
+            await _photosService.UpdatePhotoAsync(caption, id);
             return Ok(new { message = "Photo updated successfully." });
         }
 
         [HttpDelete("delete/{id}")]
         [Authorize]
         [SwaggerOperation(Summary = "Delete photo", Description = "Delete photo")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            _photos.DeletePhoto(id);
+            await _photosService.DeletePhotoAsync(id);
             return Ok(new { message = "Photo deleted successfully." });
         }
     }

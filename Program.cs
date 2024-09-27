@@ -12,7 +12,7 @@ using Microsoft.OpenApi.Models;
 using ServerAPI.DAL;
 using ServerAPI.Filters;
 using ServerAPI.Interfaces;
-using ServerAPI.Models;
+using ServerAPI.Repositories;
 using ServerAPI.Services;
 using System;
 using System.IO;
@@ -128,10 +128,14 @@ var dbPath = Path.Combine(path, "Personal.db");
 builder.Services.AddDbContext<PersonalContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
-builder.Services.AddScoped<IRandomHandler, PhotoManager>();
-builder.Services.AddScoped<IAlbums, PhotoManager>();
-builder.Services.AddScoped<IPhotos, PhotoManager>();
-builder.Services.AddScoped<IPhotoDetails, PhotoManager>();
+builder.Services.AddScoped<IAlbumValidator, AlbumValidator>();
+builder.Services.AddScoped<IAlbumHelperService, AlbumHelperService>();
+builder.Services.AddScoped<IAlbumsRepository, AlbumsRepository>();
+builder.Services.AddScoped<IPhotosRepository, PhotosRepository>();
+builder.Services.AddScoped<IAlbumsService, AlbumsService>();
+builder.Services.AddScoped<IPhotosService, PhotosService>();
+builder.Services.AddScoped<IPhotoDetailsService, PhotoDetailsService>();
+builder.Services.AddScoped<IRandomHandlerService, RandomHandlerService>();
 
 builder.Services.AddSwaggerGen(c =>
 {

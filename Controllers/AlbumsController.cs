@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using ServerAPI.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
+using System.Threading.Tasks;
 
 namespace ServerAPI.Controllers
 {
@@ -11,22 +12,22 @@ namespace ServerAPI.Controllers
     [Route("api/[controller]")]
     public class AlbumsController : ControllerBase
     {
-        private readonly IAlbums _albums;
+        private readonly IAlbumsService _albumsService;
         private readonly ILogger<AlbumsController> _logger;
 
-        public AlbumsController(IAlbums albums, ILogger<AlbumsController> logger)
+        public AlbumsController(IAlbumsService albums, ILogger<AlbumsController> logger)
         {
-            _albums = albums;
+            _albumsService = albums;
             _logger = logger;
         }
 
         [HttpGet]
         [SwaggerOperation(Summary = "Get all albums", Description = "Get all albums")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             try
             {
-                var albums = _albums.GetAlbumsWithPhotoCount();
+                var albums = await _albumsService.GetAlbumsWithPhotoCountAsync().ConfigureAwait(false);
                 return Ok(albums); // HTTP 200 OK with JSON payload
             }
             catch (Exception ex)
@@ -39,12 +40,12 @@ namespace ServerAPI.Controllers
         [HttpPost("add")]
         [Authorize]
         [SwaggerOperation(Summary = "Add album", Description = "Add album")]
-        public IActionResult Add([FromBody] string caption)
+        public async Task<IActionResult> Add([FromBody] string caption)
         {
-            var albumViewModel = _albums.AddAlbum(caption);
-            if (albumViewModel != null)
+            var response = await _albumsService.AddAlbumAsync(caption);
+            if (response.IsValid)
             {
-                return Ok(albumViewModel);
+                return Ok(response.Album);
             }
             else
             {
@@ -55,25 +56,25 @@ namespace ServerAPI.Controllers
         [HttpPut("update/{id}")]
         [Authorize]
         [SwaggerOperation(Summary = "Update album", Description = "Update album")]
-        public IActionResult Update(int id, [FromBody] string caption)
+        public async Task<IActionResult> Update(int id, [FromBody] string caption)
         {
-            var response = _albums.UpdateAlbum(caption, id);
-            if (response > 0)
+            var response = await _albumsService.UpdateAlbumAsync(caption, id);
+            if (response.IsValid)
             {
                 return Ok(new { success = true, data = caption });
             }
             else
             {
-                return BadRequest(new { success = false, message = "Failed to create album" });
+                return BadRequest(new { success = false, message = "Failed to update album" });
             }
         }
 
         [HttpDelete("delete/{id}")]
         [Authorize]
         [SwaggerOperation(Summary = "Delete album", Description = "Delete album")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            int response = _albums.DeleteAlbum(id);
+            int response = await _albumsService.DeleteAlbumAsync(id);
             if (response > 0)
             {
                 return Ok(new { success = true, message = "Album deleted successfully" });
