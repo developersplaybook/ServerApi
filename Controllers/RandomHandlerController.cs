@@ -72,7 +72,16 @@ namespace ServerAPI.Controllers
 
         public IActionResult Download(string arg1, string arg2)
         {
-            var photoId = HttpContext.Session.GetString(SessionRandomPhotoID);
+            string photoId;
+            if (arg1 == "0")
+            {
+                photoId = HttpContext.Session.GetString(SessionRandomPhotoID);
+            }
+            else
+            {
+                photoId = arg1;
+            }
+
             ViewData["PhotoID"] = photoId;
             ViewData["Size"] = "L";
 
