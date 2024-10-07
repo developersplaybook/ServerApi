@@ -1,2 +1,2 @@
 # ServerAPI
-Backend API for ReactHomepageClient, VueHomepageClient, AngularHomepageClient and BlazorHomepageClient
+Please refer to "The Aspiring Full Stack Developer's Playbook: From AI to Microservices and Kubernetes"
