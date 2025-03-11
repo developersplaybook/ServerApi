@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using ServerAPI.Interfaces;
 using ServerAPI.Models;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ServerAPI.Controllers
