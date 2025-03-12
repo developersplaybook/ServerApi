@@ -32,7 +32,7 @@ namespace ServerAPI.Controllers
             if (id == 0)
             {
                 var photoList = new List<PhotoViewModel>();
-                var randomPhotoID = HttpContext.Session.GetValue<string>(SessionRandomPhotoID);
+                var randomPhotoID = HttpContext.Session.GetValue<string>(HttpContext,SessionRandomPhotoID);
                 if (randomPhotoID != null && int.TryParse(randomPhotoID, out int randomPhotoId))
                 {
                     var tmpPhoto = await _photoDetailsService.GetPhotoViewModelByIdAsync(randomPhotoId);

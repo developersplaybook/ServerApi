@@ -51,7 +51,7 @@ namespace ServerAPI.Controllers
             {
                 var randomAlbumId = await _randomHandler.GetRandomAlbumIdAsync().ConfigureAwait(false);
                 photoId = await _randomHandler.GetRandomPhotoIdAsync(randomAlbumId);
-                HttpContext.Session.SetString(SessionRandomPhotoID, photoId.ToString());
+                HttpContext.Session.SetValue(HttpContext, SessionRandomPhotoID, photoId.ToString());
             }
             else
             {
@@ -75,7 +75,7 @@ namespace ServerAPI.Controllers
             string photoId;
             if (arg1 == "0")
             {
-                photoId = HttpContext.Session.GetString(SessionRandomPhotoID);
+                photoId = HttpContext.Session.GetValue<string>(HttpContext, SessionRandomPhotoID);
             }
             else
             {
