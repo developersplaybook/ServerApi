@@ -30,7 +30,7 @@ namespace ServerAPI.Controllers
         [SwaggerOperation(Summary = "Get the saved photo id", Description = "Get the saved photo random photo")]
         public IActionResult GetSavedRandomPhotoID()
         {
-            var randomPhotoID = HttpContext.Session.GetValue<string>(SessionRandomPhotoID);
+            var randomPhotoID = HttpContext.Session.GetValue<string>(HttpContext, SessionRandomPhotoID);
             if (randomPhotoID != null && int.TryParse(randomPhotoID, out int idd))
             {
                 return Ok(idd);

@@ -30,11 +30,11 @@ namespace ServerAPI.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            bool isLoggedIn = HttpContext.Session.GetValue<bool>(SessionUserLoggedIn);
+            bool isLoggedIn = HttpContext.Session.GetValue<bool>(HttpContext, SessionUserLoggedIn);
 
             if (isLoggedIn)
             {
-                HttpContext.Session.SetValue(SessionUserLoggedIn, false);
+                HttpContext.Session.SetValue(HttpContext, SessionUserLoggedIn, false);
                 return Ok(new { success = true, text = "userLoggedOut" });
             }
 
@@ -67,7 +67,7 @@ namespace ServerAPI.Controllers
                         expires: DateTime.UtcNow.AddMinutes(30),
                         signingCredentials: creds);
 
-                    HttpContext.Session.SetValue<bool>(SessionUserLoggedIn, true);
+                    HttpContext.Session.SetValue<bool>(HttpContext, SessionUserLoggedIn, true);
                     
                     return Ok(new
                     {
