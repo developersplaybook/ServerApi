@@ -1,0 +1,41 @@
+name: Build and Push to Master
+
+on:
+  push:
+    branches:
+      - main  # Körs vid push till main (eller vilken som helst branch du använder)
+
+jobs:
+  build:
+    runs-on: windows-latest  # Kör på en Windows-lösning
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3  # Checkar ut koden från repositoryt
+
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'  # Se till att ange rätt version för .NET 8.0
+
+    - name: Restore dependencies
+      run: dotnet restore  # Återställer beroenden
+
+    - name: Build the project
+      run: dotnet build --configuration Release  # Bygger applikationen i Release-läge
+
+    - name: Run tests (om du har tester)
+      run: dotnet test --configuration Release  # Valfritt steg om du vill köra tester
+
+    - name: Publish the project
+      run: dotnet publish --configuration Release --output ./output  # Publicera applikationen
+
+    - name: Commit and push to master
+      run: |
+        git config user.name "Your Name"
+        git config user.email "your-email@example.com"
+        git add .
+        git commit -m "Automated commit after successful build"
+        git push origin HEAD:master  # Pushar till master-branchen om bygget gick bra
+      env:
+        GIT_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Detta token används för autentisering för att push till repositoryt
