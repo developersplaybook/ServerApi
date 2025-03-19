@@ -3,7 +3,7 @@ name: Build and Push to Master
 on:
   push:
     branches:
-      - main  # Körs vid push till main (eller vilken som helst branch du använder)
+      - master  # Körs vid push till master (eller vilken som helst branch du använder)
 
 jobs:
   build:
