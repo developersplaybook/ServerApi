@@ -1,9 +1,9 @@
-name: Build and Push to Master
+name: Build and Deploy
 
 on:
   push:
     branches:
-      - master  # Körs vid push till master (eller vilken som helst branch du använder)
+      - master  # Kör vid push till master (eller vilken som helst branch du använder)
 
 jobs:
   build:
@@ -29,13 +29,3 @@ jobs:
 
     - name: Publish the project
       run: dotnet publish --configuration Release --output ./output  # Publicera applikationen
-
-    - name: Commit and push to master
-      run: |
-        git config user.name "Your Name"
-        git config user.email "your-email@example.com"
-        git add .
-        git commit -m "Automated commit after successful build"
-        git push origin HEAD:master  # Pushar till master-branchen om bygget gick bra
-      env:
-        GIT_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Detta token används för autentisering för att push till repositoryt
